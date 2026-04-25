@@ -31,8 +31,10 @@
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .screen { display: none; padding: 16px; }
   .screen.active { display: block; }
-  .date-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
+  .date-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
   .date-label span { color: var(--text); }
+  .date-edit-btn { font-size: 13px; color: var(--accent); background: var(--accent-light); border: 1px solid var(--accent); border-radius: 20px; padding: 3px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  input[type="date"] { width: 100%; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; margin-bottom: 14px; cursor: pointer; }
   .workout-type-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .type-btn { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
   .type-btn.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
@@ -88,7 +90,7 @@
 
   .remove-btn { background: none; border: none; color: var(--red); font-size: 18px; cursor: pointer; line-height: 1; padding: 0 4px; }
   .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-  .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); margin-bottom: 10px; }
+  .btn-ghost { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); margin-bottom: 10px; }
   .btn-save { background: var(--accent); color: #fff; margin-top: 6px; }
   .btn-save:active { transform: scale(0.98); }
   .cardio-form { display: none; }
@@ -174,6 +176,7 @@
 <!-- LOG -->
 <div class="screen active" id="screen-log">
   <div class="date-label" id="todayLabel"></div>
+  <input type="date" id="workoutDatePicker" style="display:none" onchange="onDatePicked(this.value)" />
   <label id="lbl-wtype"></label>
   <div class="workout-type-row">
     <button class="type-btn selected" id="tbtn-gym" onclick="selectType('gym', this)"></button>
@@ -273,6 +276,7 @@ const i18n = {
     add_ex: '+ Add exercise',
     save_btn: '💾 Save Workout',
     today_prefix: 'Today —',
+    change_date: 'change date',
     streak_label: ' day streak 🔥',
     toast_saved: 'Workout saved! 💪',
     toast_no_ex: 'Add at least one exercise',
@@ -309,6 +313,7 @@ const i18n = {
     add_ex: '+ Добавить упражнение',
     save_btn: '💾 Сохранить тренировку',
     today_prefix: 'Сегодня —',
+    change_date: 'изменить дату',
     streak_label: ' дн. подряд 🔥',
     toast_saved: 'Тренировка сохранена! 💪',
     toast_no_ex: 'Добавь хотя бы одно упражнение',
@@ -366,10 +371,31 @@ function applyLang() {
   renderExerciseList();
 }
 
+let workoutDate = new Date().toISOString().split('T')[0];
+
 function setTodayLabel() {
-  const d = new Date();
+  const d = new Date(workoutDate + 'T12:00:00');
+  const today = new Date().toISOString().split('T')[0];
+  const isToday = workoutDate === today;
   const dateStr = d.toLocaleDateString(t('locale'), {weekday:'long', month:'long', day:'numeric'});
-  document.getElementById('todayLabel').innerHTML = t('today_prefix') + ' <span>' + dateStr + '</span>';
+  const prefix = isToday ? t('today_prefix') : '📅';
+  document.getElementById('todayLabel').innerHTML =
+    `${prefix} <span>${dateStr}</span> <button class="date-edit-btn" onclick="openDatePicker()">${t('change_date')}</button>`;
+  // sync picker value
+  document.getElementById('workoutDatePicker').value = workoutDate;
+}
+
+function openDatePicker() {
+  const picker = document.getElementById('workoutDatePicker');
+  picker.style.display = 'block';
+  picker.focus();
+  picker.click();
+}
+
+function onDatePicked(val) {
+  if (val) workoutDate = val;
+  document.getElementById('workoutDatePicker').style.display = 'none';
+  setTodayLabel();
 }
 
 function setLang(l) {
@@ -527,6 +553,7 @@ function editWorkout(id) {
   const w = workouts.find(w => w.id === id);
   if (!w) return;
   editingId = id;
+  workoutDate = w.date; // load the workout's date
 
   // Switch to log tab
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -565,6 +592,8 @@ function editWorkout(id) {
 
 function cancelEdit() {
   editingId = null;
+  workoutDate = new Date().toISOString().split('T')[0];
+  setTodayLabel();
   document.getElementById('saveBtn').textContent = t('save_btn');
   document.getElementById('saveBtn').style.background = '';
 }
@@ -585,16 +614,18 @@ function saveWorkout() {
     // Update existing workout
     const idx = workouts.findIndex(w => w.id === editingId);
     if (idx !== -1) {
-      workouts[idx] = { ...workouts[idx], type: currentType, exercises: [...exercises], cardio: cardioData, notes };
+      workouts[idx] = { ...workouts[idx], date: workoutDate, type: currentType, exercises: [...exercises], cardio: cardioData, notes };
     }
     editingId = null;
+    workoutDate = new Date().toISOString().split('T')[0];
     document.getElementById('saveBtn').textContent = t('save_btn');
     document.getElementById('saveBtn').style.background = '';
     showToast(lang === 'ru' ? 'Изменения сохранены! ✅' : 'Changes saved! ✅');
   } else {
     // New workout
     const now = new Date();
-    workouts.unshift({ id: Date.now(), date: now.toISOString().split('T')[0], time: now.toTimeString().slice(0,5), type: currentType, exercises: [...exercises], cardio: cardioData, notes });
+    workouts.unshift({ id: Date.now(), date: workoutDate, time: now.toTimeString().slice(0,5), type: currentType, exercises: [...exercises], cardio: cardioData, notes });
+    workoutDate = new Date().toISOString().split('T')[0]; // reset to today
     showToast(t('toast_saved'));
   }
 
