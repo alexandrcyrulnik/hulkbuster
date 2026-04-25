@@ -435,7 +435,7 @@ function renderSetInputs() {
     const prevKg   = existing[i]?.kg   || (i > 0 ? existing[i-1]?.kg || '' : '');
     html += `<div class="set-row">
       <div class="set-num">${i + 1}</div>
-      <input class="inp-reps" type="number" min="1" placeholder="10" value="${prevReps}" inputmode="numeric" />
+      <input class="inp-reps" type="number" min="1" placeholder="12" value="${prevReps}" inputmode="numeric" />
       <input class="inp-kg"   type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="60" value="${prevKg}" />
     </div>`;
   }
@@ -683,6 +683,8 @@ function renderExploreList() {
 
 /* ── Exercise database & autocomplete ── */
 const EXERCISES = [
+  { ru: 'Сведение в тренажёре (Pec Deck)', en: 'Pec Deck Machine Fly', g: 'Грудь' },
+  { ru: 'Сведение в Хаммере', en: 'Hammer Strength Fly', g: 'Грудь' },
   { ru: 'Жим штанги лёжа', en: 'Bench Press', g: 'Грудь' },
   { ru: 'Жим гантелей лёжа', en: 'Dumbbell Bench Press', g: 'Грудь' },
   { ru: 'Жим штанги на наклонной скамье', en: 'Incline Bench Press', g: 'Грудь' },
