@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="HULKBUSTER">
-<meta name="theme-color" content="#6d28d9">
+<meta name="theme-color" content="#f43f5e">
 <link rel="apple-touch-icon" href="hulk-icon.png">
 <link rel="icon" type="image/png" href="hulk-icon.png">
 <style>
@@ -13,9 +13,9 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #f5f5f2; --surface: #ffffff; --surface2: #ededea;
-    --accent: #6d28d9; --accent2: #6d28d9; --text: #1a1a1a;
+    --accent: #f43f5e; --accent2: #f43f5e; --text: #1a1a1a;
     --muted: #888; --border: #e0e0db; --red: #e53935; --green: #2e7d32;
-    --accent-light: #ede9fe; --accent-mid: #8b5cf6;
+    --accent-light: #fff1f2; --accent-mid: #fb7185;
   }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
   header { padding: 20px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 100; }
@@ -54,10 +54,13 @@
 
   /* Per-set grid */
   .sets-detail { margin-bottom: 12px; }
-  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr auto; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
   .set-header-row span { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); text-align: center; }
   .set-header-row span:first-child { text-align: left; }
-  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .set-unit-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
+  .set-unit-btn { padding: 0 7px; height: 100%; font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif; background: none; border: none; color: var(--muted); cursor: pointer; transition: all 0.15s; line-height: 44px; }
+  .set-unit-btn.active { background: var(--accent); color: #fff; }
+  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
   .set-num { font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; padding-top: 2px; }
   .set-row input { margin-bottom: 0; padding: 10px 8px; text-align: center; font-size: 15px; }
 
@@ -99,10 +102,11 @@
   .hw-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .hw-type { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
   .hw-type.gym { background: var(--accent-light); color: var(--accent); }
-  .hw-type.cardio { background: #f3e8ff; color: #7c3aed; }
-  .hw-type.mixed { background: #ede9fe; color: #5b21b6; }
+  .hw-type.cardio { background: #fff1f2; color: #be123c; }
+  .hw-type.mixed { background: #ffe4e6; color: #e11d48; }
   .hw-exercises { font-size: 13px; color: var(--muted); line-height: 1.7; }
   .delete-workout { background: none; border: none; color: var(--red); font-size: 13px; cursor: pointer; opacity: 0.6; }
+  .edit-workout { background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer; opacity: 0.7; margin-right: 8px; }
 
   /* Progress */
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
@@ -274,7 +278,8 @@ const i18n = {
     toast_no_ex: 'Add at least one exercise',
     toast_no_name: 'Enter exercise name',
     empty_history: 'No workouts yet.<br>Log your first one!',
-    delete_btn: '🗑 delete',
+    delete_btn: '🗑 delete', edit_btn: 'edit',
+    save_edit_btn: '💾 Update Workout',
     no_details: 'No details',
     stat_total: 'Total Workouts', stat_week: 'This Week',
     stat_ex: 'Exercises', stat_streak: 'Day Streak 🔥',
@@ -309,7 +314,8 @@ const i18n = {
     toast_no_ex: 'Добавь хотя бы одно упражнение',
     toast_no_name: 'Введи название упражнения',
     empty_history: 'Тренировок пока нет.<br>Запиши первую!',
-    delete_btn: '🗑 удалить',
+    delete_btn: '🗑 удалить', edit_btn: 'изменить',
+    save_edit_btn: '💾 Сохранить изменения',
     no_details: 'Без деталей',
     stat_total: 'Всего', stat_week: 'На этой неделе',
     stat_ex: 'Упражнений', stat_streak: 'Дней подряд 🔥',
@@ -420,7 +426,8 @@ function renderSetInputs() {
   container.querySelectorAll('.set-row').forEach(row => {
     existing.push({
       reps: row.querySelector('.inp-reps').value,
-      kg: row.querySelector('.inp-kg').value
+      kg: row.querySelector('.inp-kg').value,
+      unit: row.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg'
     });
   });
 
@@ -428,19 +435,39 @@ function renderSetInputs() {
     <span>${t('lbl_set')}</span>
     <span>${t('lbl_reps')}</span>
     <span>${t('lbl_kg')}</span>
+    <span></span>
   </div>`;
 
   for (let i = 0; i < count; i++) {
     const prevReps = existing[i]?.reps || '';
     const prevKg   = existing[i]?.kg   || (i > 0 ? existing[i-1]?.kg || '' : '');
+    const prevUnit = existing[i]?.unit || 'kg';
     html += `<div class="set-row">
       <div class="set-num">${i + 1}</div>
       <input class="inp-reps" type="number" min="1" placeholder="12" value="${prevReps}" inputmode="numeric" />
-      <input class="inp-kg"   type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="60" value="${prevKg}" />
+      <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
+      <div class="set-unit-toggle">
+        <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
+        <button class="set-unit-btn ${prevUnit==='lbs'?'active':''}" data-unit="lbs" onclick="toggleUnit(this,'lbs')">lbs</button>
+      </div>
     </div>`;
   }
 
   container.innerHTML = html;
+}
+
+function toggleUnit(btn, unit) {
+  const row = btn.closest('.set-row');
+  row.querySelectorAll('.set-unit-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const inp = row.querySelector('.inp-kg');
+  inp.placeholder = unit === 'lbs' ? '135' : '60';
+}
+
+function lbsToKg(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return '0';
+  return (Math.round(num * 0.453592 * 2) / 2).toString(); // round to nearest 0.5
 }
 
 function addExercise() {
@@ -448,10 +475,15 @@ function addExercise() {
   if (!name) { showToast(t('toast_no_name')); return; }
 
   const setRows = document.querySelectorAll('#setInputsContainer .set-row');
-  const sets = Array.from(setRows).map((row, i) => ({
-    reps: row.querySelector('.inp-reps').value || '?',
-    kg:   row.querySelector('.inp-kg').value.replace(',', '.') || '0'
-  }));
+  const sets = Array.from(setRows).map((row) => {
+    const unit = row.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg';
+    const rawVal = row.querySelector('.inp-kg').value.replace(',', '.');
+    const kg = unit === 'lbs' ? lbsToKg(rawVal) : (rawVal || '0');
+    return {
+      reps: row.querySelector('.inp-reps').value || '?',
+      kg
+    };
+  });
 
   exercises.push({ name, sets });
   renderExerciseList();
@@ -489,6 +521,54 @@ function renderExerciseList() {
   }).join('');
 }
 
+let editingId = null;
+
+function editWorkout(id) {
+  const w = workouts.find(w => w.id === id);
+  if (!w) return;
+  editingId = id;
+
+  // Switch to log tab
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-log').classList.add('active');
+  document.getElementById('screen-log').classList.add('active');
+
+  // Set type
+  selectType(w.type, document.getElementById('tbtn-' + w.type));
+
+  // Load exercises
+  exercises = w.exercises ? w.exercises.map(e => ({
+    name: e.name,
+    sets: Array.isArray(e.sets) ? e.sets : [{reps: e.reps, kg: e.weight}]
+  })) : [];
+  renderExerciseList();
+
+  // Load cardio
+  if (w.cardio) {
+    document.getElementById('cardioActivity').value = w.cardio.activity || '';
+    document.getElementById('cardioDuration').value = w.cardio.duration || '';
+    document.getElementById('cardioDistance').value = w.cardio.distance || '';
+    document.getElementById('cardioHR').value = w.cardio.hr || '';
+  }
+
+  // Load notes
+  document.getElementById('workoutNotes').value = w.notes || '';
+
+  // Update save button
+  document.getElementById('saveBtn').textContent = t('save_edit_btn');
+  document.getElementById('saveBtn').style.background = '#e11d48';
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  showToast(lang === 'ru' ? 'Редактирование тренировки' : 'Editing workout');
+}
+
+function cancelEdit() {
+  editingId = null;
+  document.getElementById('saveBtn').textContent = t('save_btn');
+  document.getElementById('saveBtn').style.background = '';
+}
+
 function saveWorkout() {
   let cardioData = null;
   if (currentType !== 'gym') {
@@ -499,14 +579,30 @@ function saveWorkout() {
     }
   }
   if (exercises.length === 0 && !cardioData) { showToast(t('toast_no_ex')); return; }
-  const now = new Date();
-  workouts.unshift({ id: Date.now(), date: now.toISOString().split('T')[0], time: now.toTimeString().slice(0,5), type: currentType, exercises: [...exercises], cardio: cardioData, notes: document.getElementById('workoutNotes').value.trim() });
+  const notes = document.getElementById('workoutNotes').value.trim();
+
+  if (editingId !== null) {
+    // Update existing workout
+    const idx = workouts.findIndex(w => w.id === editingId);
+    if (idx !== -1) {
+      workouts[idx] = { ...workouts[idx], type: currentType, exercises: [...exercises], cardio: cardioData, notes };
+    }
+    editingId = null;
+    document.getElementById('saveBtn').textContent = t('save_btn');
+    document.getElementById('saveBtn').style.background = '';
+    showToast(lang === 'ru' ? 'Изменения сохранены! ✅' : 'Changes saved! ✅');
+  } else {
+    // New workout
+    const now = new Date();
+    workouts.unshift({ id: Date.now(), date: now.toISOString().split('T')[0], time: now.toTimeString().slice(0,5), type: currentType, exercises: [...exercises], cardio: cardioData, notes });
+    showToast(t('toast_saved'));
+  }
+
   save(); exercises = []; renderExerciseList();
   ['workoutNotes','exName','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('exSetsCount').value = 3;
   renderSetInputs();
   updateStreak();
-  showToast(t('toast_saved'));
 }
 
 function getTypeBadge(type) {
@@ -536,7 +632,7 @@ function renderHistory() {
       let exLines = (w.exercises||[]).map(e => formatExerciseForHistory(e)).join('<br>');
       if (w.cardio) { const c=w.cardio; exLines+=(exLines?'<br>':'')+'🏃 '+[c.activity,c.duration?c.duration+'min':'',c.distance?c.distance+'km':'',c.hr?c.hr+' bpm':''].filter(Boolean).join(' · '); }
       if (w.notes) exLines+=`<br><em style="color:#888">💬 ${w.notes}</em>`;
-      return `<div class="history-workout"><div class="hw-header"><span class="hw-type ${w.type}">${getTypeBadge(w.type)}</span><button class="delete-workout" onclick="deleteWorkout(${w.id})">${t('delete_btn')}</button></div><div class="hw-exercises">${exLines||t('no_details')}</div></div>`;
+      return `<div class="history-workout"><div class="hw-header"><span class="hw-type ${w.type}">${getTypeBadge(w.type)}</span><div><button class="edit-workout" onclick="editWorkout(${w.id})">✏️ ${t('edit_btn')}</button><button class="delete-workout" onclick="deleteWorkout(${w.id})">${t('delete_btn')}</button></div></div><div class="hw-exercises">${exLines||t('no_details')}</div></div>`;
     }).join('');
     return `<div class="history-day"><div class="history-date">${label}</div>${cards}</div>`;
   }).join('');
