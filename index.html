@@ -31,9 +31,10 @@
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .screen { display: none; padding: 16px; }
   .screen.active { display: block; }
-  .date-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .date-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 4px; }
   .date-label span { color: var(--text); }
-  .date-edit-btn { font-size: 13px; color: var(--accent); background: var(--accent-light); border: 1px solid var(--accent); border-radius: 20px; padding: 3px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  .date-edit-btn { font-size: 16px; color: var(--muted); background: none; border: none; padding: 2px 4px; cursor: pointer; line-height: 1; border-radius: 6px; transition: color 0.15s; }
+  .date-edit-btn:hover { color: var(--accent); }
   input[type="date"] { width: 100%; background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; margin-bottom: 14px; cursor: pointer; }
   .workout-type-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .type-btn { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
@@ -162,7 +163,6 @@
       <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
       <button class="lang-btn" id="btn-ru" onclick="setLang('ru')">RU</button>
     </div>
-    <div class="streak"><span class="streak-num" id="streakNum">0</span><span id="streakLabel"></span></div>
   </div>
 </header>
 
@@ -363,7 +363,8 @@ function applyLang() {
   document.getElementById('lbl-notes').textContent = t('notes');
   document.getElementById('workoutNotes').placeholder = t('notes_ph');
   document.getElementById('saveBtn').textContent = t('save_btn');
-  document.getElementById('streakLabel').textContent = t('streak_label');
+  const streakLabel = document.getElementById('streakLabel');
+  if (streakLabel) streakLabel.textContent = t('streak_label');
   document.getElementById('weekTitle').textContent = t('week_title');
   document.getElementById('pbTitle').textContent = t('pb_title');
   setTodayLabel();
@@ -380,7 +381,7 @@ function setTodayLabel() {
   const dateStr = d.toLocaleDateString(t('locale'), {weekday:'long', month:'long', day:'numeric'});
   const prefix = isToday ? t('today_prefix') : '📅';
   document.getElementById('todayLabel').innerHTML =
-    `${prefix} <span>${dateStr}</span> <button class="date-edit-btn" onclick="openDatePicker()">${t('change_date')}</button>`;
+    `${prefix} <span>${dateStr}</span> <button class="date-edit-btn" onclick="openDatePicker()" title="${t('change_date')}">✏️</button>`;
   // sync picker value
   document.getElementById('workoutDatePicker').value = workoutDate;
 }
@@ -682,7 +683,7 @@ function calcStreak() {
   return streak;
 }
 
-function updateStreak() { document.getElementById('streakNum').textContent = calcStreak(); }
+function updateStreak() { const el = document.getElementById('streakNum'); if (el) el.textContent = calcStreak(); }
 
 function getMaxKg(ex) {
   if (ex.sets && Array.isArray(ex.sets)) return Math.max(...ex.sets.map(s => parseFloat(s.kg)||0));
@@ -958,7 +959,11 @@ function acMoveFocus(dir) {
   items[acFocusIdx].classList.add('focused');
 }
 
-document.addEventListener('DOMContentLoaded', () => {});
+document.addEventListener('DOMContentLoaded', () => {
+  applyLang();
+  renderSetInputs();
+  updateStreak();
+});
 
 (function initAC() {
   const inp = document.getElementById('exName');
@@ -975,11 +980,6 @@ document.addEventListener('DOMContentLoaded', () => {});
   });
   inp.addEventListener('blur', () => setTimeout(acClose, 150));
 })();
-
-// Init
-applyLang();
-renderSetInputs();
-updateStreak();
 </script>
 </body>
 </html>
