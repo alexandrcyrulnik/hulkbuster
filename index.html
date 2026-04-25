@@ -436,7 +436,7 @@ function renderSetInputs() {
     html += `<div class="set-row">
       <div class="set-num">${i + 1}</div>
       <input class="inp-reps" type="number" min="1" placeholder="10" value="${prevReps}" inputmode="numeric" />
-      <input class="inp-kg"   type="number" min="0" step="0.5" placeholder="60" value="${prevKg}" inputmode="decimal" />
+      <input class="inp-kg"   type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="60" value="${prevKg}" />
     </div>`;
   }
 
@@ -450,7 +450,7 @@ function addExercise() {
   const setRows = document.querySelectorAll('#setInputsContainer .set-row');
   const sets = Array.from(setRows).map((row, i) => ({
     reps: row.querySelector('.inp-reps').value || '?',
-    kg:   row.querySelector('.inp-kg').value   || '0'
+    kg:   row.querySelector('.inp-kg').value.replace(',', '.') || '0'
   }));
 
   exercises.push({ name, sets });
@@ -694,6 +694,15 @@ const EXERCISES = [
   { ru: 'Пуловер с гантелью', en: 'Dumbbell Pullover', g: 'Грудь' },
   { ru: 'Отжимания от пола', en: 'Push-ups', g: 'Грудь' },
   { ru: 'Жим в тренажёре Хаммер', en: 'Hammer Chest Press', g: 'Грудь' },
+  { ru: 'Тяга в Хаммере сидя', en: 'Hammer Strength Seated Row', g: 'Спина' },
+  { ru: 'Тяга в Хаммере High Row', en: 'Hammer Strength High Row', g: 'Спина' },
+  { ru: 'Тяга в Хаммере Low Row', en: 'Hammer Strength Low Row', g: 'Спина' },
+  { ru: 'Тяга в Хаммере одной рукой', en: 'Hammer Strength Iso-Lateral Row', g: 'Спина' },
+  { ru: 'Тяга верхнего блока Хаммер', en: 'Hammer Strength Lat Pulldown', g: 'Спина' },
+  { ru: 'Тяга верхнего блока нейтральным хватом Хаммер', en: 'Hammer Strength Neutral Grip Pulldown', g: 'Спина' },
+  { ru: 'Тяга верхнего блока за голову Хаммер', en: 'Hammer Strength Behind Neck Pulldown', g: 'Спина' },
+  { ru: 'Тяга Iso-Lateral Chest/Back', en: 'Hammer Strength Iso-Lateral Chest/Back', g: 'Спина' },
+  { ru: 'Гиперэкстензия в Хаммере', en: 'Hammer Strength Back Extension', g: 'Спина' },
   { ru: 'Становая тяга', en: 'Deadlift', g: 'Спина' },
   { ru: 'Подтягивания', en: 'Pull-ups', g: 'Спина' },
   { ru: 'Тяга штанги в наклоне', en: 'Barbell Row', g: 'Спина' },
