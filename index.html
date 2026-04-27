@@ -93,6 +93,7 @@
   .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
   .btn-ghost { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); margin-bottom: 10px; }
   .btn-save { background: var(--accent); color: #fff; margin-top: 6px; }
+  .btn-cancel { background: none; color: var(--muted); border: none; margin-top: 4px; text-decoration: underline; font-size: 13px; }
   .btn-save:active { transform: scale(0.98); }
   .cardio-form { display: none; }
   .cardio-form.visible { display: block; }
@@ -124,7 +125,7 @@
   .pb-value { font-weight: 600; color: var(--accent); }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
   .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 200; white-space: nowrap; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 200; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   /* Explore screen */
   .explore-search { margin-bottom: 14px; }
@@ -152,6 +153,14 @@
   .bar-fill.cardio-bar { background: var(--accent-mid); }
   .bar-fill.mixed-bar { background: #a78bfa; }
   .bar-count { font-size: 11px; color: var(--muted); width: 16px; text-align: right; }
+  .muscle-tag { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.4px; display: inline-block; margin: 0 6px; vertical-align: middle; white-space: nowrap; }
+  .barcode-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 2px 4px; line-height: 1; opacity: 0.7; transition: opacity 0.2s; }
+  .barcode-btn:active { opacity: 1; }
+  .barcode-modal { display: none; position: fixed; inset: 0; background: #fff; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+  .barcode-modal.open { display: flex; }
+  .barcode-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); }
+  .barcode-modal img { width: 90%; max-width: 420px; image-rendering: crisp-edges; }
+  .barcode-modal-label { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--muted); margin-top: 24px; }
 </style>
 </head>
 <body>
@@ -159,9 +168,12 @@
 <header>
   <div class="logo">HULKBUSTER</div>
   <div class="header-right">
-    <div class="lang-toggle">
-      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-      <button class="lang-btn" id="btn-ru" onclick="setLang('ru')">RU</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="barcode-btn" onclick="document.getElementById('barcodeModal').classList.add('open')" title="Карта зала">🎫</button>
+      <div class="lang-toggle">
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="btn-ru" onclick="setLang('ru')">RU</button>
+      </div>
     </div>
   </div>
 </header>
@@ -177,6 +189,7 @@
 <div class="screen active" id="screen-log">
   <div class="date-label" id="todayLabel"></div>
   <input type="date" id="workoutDatePicker" style="display:none" onchange="onDatePicked(this.value)" />
+  <button id="dateCancelBtn" style="display:none;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;padding:0 0 10px;text-decoration:underline;width:100%;text-align:right" onclick="cancelDateEdit()"></button>
   <label id="lbl-wtype"></label>
   <div class="workout-type-row">
     <button class="type-btn selected" id="tbtn-gym" onclick="selectType('gym', this)"></button>
@@ -226,6 +239,7 @@
   <label id="lbl-notes"></label>
   <textarea id="workoutNotes"></textarea>
   <button class="btn btn-save" id="saveBtn" onclick="saveWorkout()"></button>
+  <button class="btn btn-cancel" id="cancelEditBtn" style="display:none" onclick="cancelEdit()"></button>
 </div>
 
 <!-- HISTORY -->
@@ -252,6 +266,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="barcode-modal" id="barcodeModal" onclick="this.classList.remove('open')">
+  <button class="barcode-modal-close" onclick="document.getElementById('barcodeModal').classList.remove('open')">✕</button>
+  <img src="barcode.jpg" alt="barcode" />
+</div>
 
 <script>
 const STORAGE_KEY = 'gainlog_v2';
@@ -284,6 +303,8 @@ const i18n = {
     empty_history: 'No workouts yet.<br>Log your first one!',
     delete_btn: '🗑 delete', edit_btn: 'edit',
     save_edit_btn: '💾 Update Workout',
+    cancel_edit_btn: 'Cancel editing',
+    cancel_date_btn: 'Cancel',
     no_details: 'No details',
     stat_total: 'Total Workouts', stat_week: 'This Week',
     stat_ex: 'Exercises', stat_streak: 'Day Streak 🔥',
@@ -321,6 +342,8 @@ const i18n = {
     empty_history: 'Тренировок пока нет.<br>Запиши первую!',
     delete_btn: '🗑 удалить', edit_btn: 'изменить',
     save_edit_btn: '💾 Сохранить изменения',
+    cancel_edit_btn: 'Отменить редактирование',
+    cancel_date_btn: 'Отмена',
     no_details: 'Без деталей',
     stat_total: 'Всего', stat_week: 'На этой неделе',
     stat_ex: 'Упражнений', stat_streak: 'Дней подряд 🔥',
@@ -378,7 +401,7 @@ function setTodayLabel() {
   const d = new Date(workoutDate + 'T12:00:00');
   const today = new Date().toISOString().split('T')[0];
   const isToday = workoutDate === today;
-  const dateStr = d.toLocaleDateString(t('locale'), {weekday:'long', month:'long', day:'numeric'});
+  const dateStr = d.toLocaleDateString(t('locale'), {weekday:'short', month:'short', day:'numeric'});
   const prefix = isToday ? t('today_prefix') : '📅';
   document.getElementById('todayLabel').innerHTML =
     `${prefix} <span>${dateStr}</span> <button class="date-edit-btn" onclick="openDatePicker()" title="${t('change_date')}">✏️</button>`;
@@ -388,7 +411,10 @@ function setTodayLabel() {
 
 function openDatePicker() {
   const picker = document.getElementById('workoutDatePicker');
+  const cancelBtn = document.getElementById('dateCancelBtn');
   picker.style.display = 'block';
+  cancelBtn.textContent = t('cancel_date_btn');
+  cancelBtn.style.display = 'block';
   picker.focus();
   picker.click();
 }
@@ -396,7 +422,13 @@ function openDatePicker() {
 function onDatePicked(val) {
   if (val) workoutDate = val;
   document.getElementById('workoutDatePicker').style.display = 'none';
+  document.getElementById('dateCancelBtn').style.display = 'none';
   setTodayLabel();
+}
+
+function cancelDateEdit() {
+  document.getElementById('workoutDatePicker').style.display = 'none';
+  document.getElementById('dateCancelBtn').style.display = 'none';
 }
 
 function setLang(l) {
@@ -535,7 +567,7 @@ function renderExerciseList() {
       </tr>`;
     }).join('');
     return `<div class="exercise-entry">
-      <div class="exercise-name">${ex.name}<button class="remove-btn" onclick="removeExercise(${i})">×</button></div>
+      <div class="exercise-name"><span>${ex.name}${muscleTag(ex.name)}</span><button class="remove-btn" onclick="removeExercise(${i})">×</button></div>
       <table class="sets-table">
         <thead><tr>
           <th>${t('set_short')}</th>
@@ -583,9 +615,12 @@ function editWorkout(id) {
   // Load notes
   document.getElementById('workoutNotes').value = w.notes || '';
 
-  // Update save button
+  // Update save button + show cancel
   document.getElementById('saveBtn').textContent = t('save_edit_btn');
   document.getElementById('saveBtn').style.background = '#e11d48';
+  const cancelBtn = document.getElementById('cancelEditBtn');
+  cancelBtn.textContent = t('cancel_edit_btn');
+  cancelBtn.style.display = 'block';
 
   window.scrollTo({top: 0, behavior: 'smooth'});
   showToast(lang === 'ru' ? 'Редактирование тренировки' : 'Editing workout');
@@ -595,8 +630,15 @@ function cancelEdit() {
   editingId = null;
   workoutDate = new Date().toISOString().split('T')[0];
   setTodayLabel();
+  exercises = [];
+  renderExerciseList();
+  ['workoutNotes','exName','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('exSetsCount').value = 3;
+  renderSetInputs();
+  selectType('gym', document.getElementById('tbtn-gym'));
   document.getElementById('saveBtn').textContent = t('save_btn');
   document.getElementById('saveBtn').style.background = '';
+  document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
 function saveWorkout() {
@@ -646,10 +688,10 @@ function formatExerciseForHistory(ex) {
   // ex.sets is array [{reps, kg}] (new format) or old format with scalar sets/reps/weight
   if (ex.sets && Array.isArray(ex.sets)) {
     const setsStr = ex.sets.map((s, i) => `${i+1}: ${s.reps}×${s.kg}kg`).join('  ');
-    return `${ex.name} — ${setsStr}`;
+    return `${muscleTag(ex.name)}${ex.name} — ${setsStr}`;
   }
   // legacy
-  return `${ex.name}: ${ex.sets}×${ex.reps} @ ${ex.weight}kg`;
+  return `${muscleTag(ex.name)}${ex.name}: ${ex.sets}×${ex.reps} @ ${ex.weight}kg`;
 }
 
 function renderHistory() {
@@ -927,6 +969,29 @@ const EXERCISES = [
   { ru: 'Прыжки на скакалке', en: 'Jump Rope', g: 'Кардио' },
   { ru: 'Берпи', en: 'Burpees', g: 'Кардио' },
 ];
+
+const MUSCLE_COLORS = {
+  'Грудь':   { bg: '#dbeafe', color: '#1d4ed8' },
+  'Спина':   { bg: '#dcfce7', color: '#15803d' },
+  'Ноги':    { bg: '#f3e8ff', color: '#7e22ce' },
+  'Плечи':   { bg: '#ffedd5', color: '#c2410c' },
+  'Бицепс':  { bg: '#cffafe', color: '#0e7490' },
+  'Трицепс': { bg: '#fce7f3', color: '#be185d' },
+  'Пресс':   { bg: '#fef9c3', color: '#a16207' },
+  'Кардио':  { bg: '#fff1f2', color: '#be123c' },
+};
+
+function getMuscleGroup(name) {
+  const ex = EXERCISES.find(e => e.ru === name || e.en === name);
+  return ex ? ex.g.split(' / ')[0] : null;
+}
+
+function muscleTag(name) {
+  const g = getMuscleGroup(name);
+  if (!g) return '';
+  const c = MUSCLE_COLORS[g] || { bg: '#f3f4f6', color: '#6b7280' };
+  return `<span class="muscle-tag" style="background:${c.bg};color:${c.color}">${g}</span>`;
+}
 
 let acFocusIdx = -1;
 
