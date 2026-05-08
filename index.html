@@ -224,15 +224,7 @@
       </div>
 
       <div class="sets-detail" id="setInputsContainer"></div>
-
-      <div style="margin-bottom:12px">
-        <label id="lbl-effort"></label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="type-btn" id="effort-failed" onclick="selectEffort('failed')" style="font-size:12px;padding:6px 10px">😵 <span id="lbl-effort-failed"></span></button>
-          <button class="type-btn" id="effort-hard"   onclick="selectEffort('hard')"   style="font-size:12px;padding:6px 10px">🔥 <span id="lbl-effort-hard"></span></button>
-          <button class="type-btn" id="effort-easy"   onclick="selectEffort('easy')"   style="font-size:12px;padding:6px 10px">💪 <span id="lbl-effort-easy"></span></button>
-        </div>
-      </div>
+      <div id="effortLegend" style="font-size:11px;color:var(--muted);margin-bottom:12px;display:none">😵 <span id="leg-failed"></span> &nbsp;🔥 <span id="leg-hard"></span> &nbsp;💪 <span id="leg-easy"></span></div>
 
       <div>
         <label id="lbl-exnotes"></label>
@@ -304,7 +296,6 @@ const i18n = {
     exname: 'Exercise name', exname_ph: 'e.g. Bench Press',
     sets: 'Sets',
     lbl_set: 'Set', lbl_reps: 'Reps', lbl_kg: 'kg',
-    effort_label: 'How hard was it?',
     effort_easy: 'had energy left', effort_hard: 'pushed through', effort_failed: 'couldn\'t finish',
     ex_notes: 'Exercise note (optional)', ex_notes_ph: 'e.g. felt heavy, good form',
     activity: 'Activity', activity_ph: 'e.g. Running, Cycling',
@@ -346,7 +337,6 @@ const i18n = {
     exname: 'Название упражнения', exname_ph: 'напр. Жим лёжа',
     sets: 'Подходы',
     lbl_set: 'Подход', lbl_reps: 'Повт.', lbl_kg: 'кг',
-    effort_label: 'Как было тяжело?',
     effort_easy: 'остались ещё силы', effort_hard: 'сделал с трудом', effort_failed: 'не доделал',
     ex_notes: 'Заметка к упражнению (необязательно)', ex_notes_ph: 'напр. тяжело шло, хорошая техника',
     activity: 'Активность', activity_ph: 'напр. Бег, Велосипед',
@@ -399,10 +389,9 @@ function applyLang() {
   document.getElementById('lbl-exname').textContent = t('exname');
   document.getElementById('exName').placeholder = t('exname_ph');
   document.getElementById('lbl-sets').textContent = t('sets');
-  document.getElementById('lbl-effort').textContent = t('effort_label');
-  document.getElementById('lbl-effort-easy').textContent = t('effort_easy');
-  document.getElementById('lbl-effort-hard').textContent = t('effort_hard');
-  document.getElementById('lbl-effort-failed').textContent = t('effort_failed');
+  document.getElementById('leg-easy').textContent = t('effort_easy');
+  document.getElementById('leg-hard').textContent = t('effort_hard');
+  document.getElementById('leg-failed').textContent = t('effort_failed');
   document.getElementById('lbl-exnotes').textContent = t('ex_notes');
   document.getElementById('exNotes').placeholder = t('ex_notes_ph');
   document.getElementById('addExBtn').textContent = t('add_ex');
@@ -508,11 +497,12 @@ function renderSetInputs() {
 
   // Preserve existing values
   const existing = [];
-  container.querySelectorAll('.set-row').forEach(row => {
+  container.querySelectorAll('.set-wrap').forEach(wrap => {
     existing.push({
-      reps: row.querySelector('.inp-reps').value,
-      kg: row.querySelector('.inp-kg').value,
-      unit: row.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg'
+      reps: wrap.querySelector('.inp-reps').value,
+      kg: wrap.querySelector('.inp-kg').value,
+      unit: wrap.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg',
+      effort: wrap.querySelector('.set-effort-btn.sel')?.dataset.effort || null
     });
   });
 
@@ -524,21 +514,30 @@ function renderSetInputs() {
   </div>`;
 
   for (let i = 0; i < count; i++) {
-    const prevReps = existing[i]?.reps || '';
-    const prevKg   = existing[i]?.kg   || (i > 0 ? existing[i-1]?.kg || '' : '');
-    const prevUnit = existing[i]?.unit || 'kg';
-    html += `<div class="set-row">
-      <div class="set-num">${i + 1}</div>
-      <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps || defaultReps}" inputmode="numeric" />
-      <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
-      <div class="set-unit-toggle">
-        <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
-        <button class="set-unit-btn ${prevUnit==='lbs'?'active':''}" data-unit="lbs" onclick="toggleUnit(this,'lbs')">lbs</button>
+    const prevReps   = existing[i]?.reps || '';
+    const prevKg     = existing[i]?.kg   || (i > 0 ? existing[i-1]?.kg || '' : '');
+    const prevUnit   = existing[i]?.unit   || 'kg';
+    const prevEffort = existing[i]?.effort || null;
+    html += `<div class="set-wrap" style="margin-bottom:8px">
+      <div class="set-row" style="margin-bottom:4px">
+        <div class="set-num">${i + 1}</div>
+        <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps || defaultReps}" inputmode="numeric" />
+        <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
+        <div class="set-unit-toggle">
+          <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
+          <button class="set-unit-btn ${prevUnit==='lbs'?'active':''}" data-unit="lbs" onclick="toggleUnit(this,'lbs')">lbs</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;padding-left:28px">
+        <button class="set-effort-btn${prevEffort==='failed'?' sel':''}" data-effort="failed" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='failed'?'1':'0.25'};padding:0;line-height:1">😵</button>
+        <button class="set-effort-btn${prevEffort==='hard'?' sel':''}" data-effort="hard" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='hard'?'1':'0.25'};padding:0;line-height:1">🔥</button>
+        <button class="set-effort-btn${prevEffort==='easy'?' sel':''}" data-effort="easy" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='easy'?'1':'0.25'};padding:0;line-height:1">💪</button>
       </div>
     </div>`;
   }
 
   container.innerHTML = html;
+  document.getElementById('effortLegend').style.display = 'block';
 }
 
 function toggleUnit(btn, unit) {
@@ -559,19 +558,20 @@ function addExercise() {
   const name = document.getElementById('exName').value.trim();
   if (!name) { showToast(t('toast_no_name')); return; }
 
-  const setRows = document.querySelectorAll('#setInputsContainer .set-row');
-  const sets = Array.from(setRows).map((row) => {
-    const unit = row.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg';
-    const rawVal = row.querySelector('.inp-kg').value.replace(',', '.');
+  const setWraps = document.querySelectorAll('#setInputsContainer .set-wrap');
+  const sets = Array.from(setWraps).map((wrap) => {
+    const unit = wrap.querySelector('.set-unit-btn.active')?.dataset.unit || 'kg';
+    const rawVal = wrap.querySelector('.inp-kg').value.replace(',', '.');
     const kg = unit === 'lbs' ? lbsToKg(rawVal) : (rawVal || '0');
     return {
-      reps: row.querySelector('.inp-reps').value || '?',
-      kg
+      reps: wrap.querySelector('.inp-reps').value || '?',
+      kg,
+      effort: wrap.querySelector('.set-effort-btn.sel')?.dataset.effort || null
     };
   });
 
   const exNotes = document.getElementById('exNotes').value.trim();
-  exercises.push({ name, sets, notes: exNotes, effort: selectedEffort });
+  exercises.push({ name, sets, notes: exNotes });
   renderExerciseList();
 
   // Reset form
@@ -581,8 +581,6 @@ function addExercise() {
   defaultReps = 12;
   document.getElementById('reps-toggle-12').classList.add('active');
   document.getElementById('reps-toggle-15').classList.remove('active');
-  selectedEffort = null;
-  ['easy','hard','failed'].forEach(k => document.getElementById('effort-' + k).classList.remove('selected'));
   renderSetInputs();
 }
 
@@ -595,7 +593,7 @@ function renderExerciseList() {
       const isTop = (parseFloat(s.kg) || 0) === maxKg && maxKg > 0;
       return `<tr>
         <td>${si + 1}</td>
-        <td>${s.reps}</td>
+        <td>${s.reps}${s.effort ? ' ' + EFFORT_EMOJI[s.effort] : ''}</td>
         <td class="${isTop ? 'top-set' : ''}">${s.kg} kg</td>
       </tr>`;
     }).join('');
@@ -609,20 +607,20 @@ function renderExerciseList() {
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      ${ex.effort || ex.notes ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">${ex.effort ? EFFORT_EMOJI[ex.effort] + ' ' : ''}${ex.notes ? '💬 ' + ex.notes : ''}</div>` : ''}
+      ${ex.notes ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">💬 ${ex.notes}</div>` : ''}
     </div>`;
   }).join('');
 }
 
 let defaultReps = 12;
-let selectedEffort = null;
 const EFFORT_EMOJI = { easy: '💪', hard: '🔥', failed: '😵' };
 
-function selectEffort(val) {
-  selectedEffort = selectedEffort === val ? null : val;
-  ['easy','hard','failed'].forEach(k => {
-    document.getElementById('effort-' + k).classList.toggle('selected', selectedEffort === k);
-  });
+function toggleSetEffort(btn) {
+  const wrap = btn.closest('.set-wrap');
+  const btns = wrap.querySelectorAll('.set-effort-btn');
+  const isSelected = btn.classList.contains('sel');
+  btns.forEach(b => { b.classList.remove('sel'); b.style.opacity = '0.25'; });
+  if (!isSelected) { btn.classList.add('sel'); btn.style.opacity = '1'; }
 }
 
 function setDefaultReps(val) {
@@ -742,9 +740,8 @@ function getTypeBadge(type) {
 function formatExerciseForHistory(ex) {
   // ex.sets is array [{reps, kg}] (new format) or old format with scalar sets/reps/weight
   if (ex.sets && Array.isArray(ex.sets)) {
-    const setsStr = ex.sets.map((s, i) => `${i+1}: ${s.reps}×${s.kg}kg`).join('  ');
-    const effortStr = ex.effort ? EFFORT_EMOJI[ex.effort] + ' ' : '';
-    const noteLine = (ex.effort || ex.notes) ? `<br><span style="font-size:11px;color:var(--muted);padding-left:4px">${effortStr}${ex.notes ? '💬 ' + ex.notes : ''}</span>` : '';
+    const setsStr = ex.sets.map((s, i) => `${i+1}: ${s.reps}×${s.kg}kg${s.effort ? ' ' + EFFORT_EMOJI[s.effort] : ''}`).join('  ');
+    const noteLine = ex.notes ? `<br><span style="font-size:11px;color:var(--muted);padding-left:4px">💬 ${ex.notes}</span>` : '';
     return `${muscleTag(ex.name)}${ex.name} — ${setsStr}${noteLine}`;
   }
   // legacy
