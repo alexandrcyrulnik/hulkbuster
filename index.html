@@ -50,7 +50,8 @@
   .ex-name-row input { margin-bottom: 0; }
   .sets-count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
   .sets-count-row label { margin-bottom: 0; flex-shrink: 0; }
-  .sets-count-row input { width: 70px; margin-bottom: 0; text-align: center; font-size: 18px; font-weight: 600; padding: 8px 10px; flex-shrink: 0; }
+  .sets-count-row input { width: 70px; margin-bottom: 0; text-align: center; font-size: 18px; font-weight: 600; padding: 8px 10px; flex-shrink: 0; -moz-appearance: textfield; }
+  .sets-count-row input::-webkit-outer-spin-button, .sets-count-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .sets-stepper { display: flex; gap: 6px; align-items: center; }
   .step-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
   .step-btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
