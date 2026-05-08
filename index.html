@@ -529,7 +529,7 @@ function renderSetInputs() {
     const prevUnit = existing[i]?.unit || 'kg';
     html += `<div class="set-row">
       <div class="set-num">${i + 1}</div>
-      <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps}" inputmode="numeric" />
+      <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps || defaultReps}" inputmode="numeric" />
       <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
       <div class="set-unit-toggle">
         <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
