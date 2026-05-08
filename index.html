@@ -217,6 +217,10 @@
           <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" />
           <button class="step-btn" onclick="changeSets(1)">+</button>
         </div>
+        <div class="set-unit-toggle" style="margin-left:8px">
+          <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)">12</button>
+          <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)">15</button>
+        </div>
       </div>
 
       <div class="sets-detail" id="setInputsContainer"></div>
@@ -508,7 +512,7 @@ function renderSetInputs() {
     const prevUnit = existing[i]?.unit || 'kg';
     html += `<div class="set-row">
       <div class="set-num">${i + 1}</div>
-      <input class="inp-reps" type="number" min="1" placeholder="12" value="${prevReps}" inputmode="numeric" />
+      <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps}" inputmode="numeric" />
       <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
       <div class="set-unit-toggle">
         <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
@@ -557,6 +561,9 @@ function addExercise() {
   document.getElementById('exName').value = '';
   document.getElementById('exNotes').value = '';
   document.getElementById('exSetsCount').value = 3;
+  defaultReps = 12;
+  document.getElementById('reps-toggle-12').classList.add('active');
+  document.getElementById('reps-toggle-15').classList.remove('active');
   renderSetInputs();
 }
 
@@ -586,6 +593,18 @@ function renderExerciseList() {
       ${ex.notes ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">💬 ${ex.notes}</div>` : ''}
     </div>`;
   }).join('');
+}
+
+let defaultReps = 12;
+
+function setDefaultReps(val) {
+  defaultReps = val;
+  document.getElementById('reps-toggle-12').classList.toggle('active', val === 12);
+  document.getElementById('reps-toggle-15').classList.toggle('active', val === 15);
+  // update any empty rep inputs
+  document.querySelectorAll('#setInputsContainer .inp-reps').forEach(inp => {
+    if (!inp.value) inp.placeholder = val;
+  });
 }
 
 let editingId = null;
