@@ -282,6 +282,7 @@
 
 <script>
 const STORAGE_KEY = 'gainlog_v2';
+const DRAFT_KEY = 'gainlog_draft';
 let workouts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let currentType = 'gym';
 let exercises = [];
@@ -476,6 +477,48 @@ function formatDurationInput(inp) {
 
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts)); }
 
+function saveDraft() {
+  if (editingId !== null) return; // не сохраняем черновик при редактировании
+  const draft = {
+    type: currentType,
+    date: workoutDate,
+    exercises: [...exercises],
+    cardio: {
+      activity: document.getElementById('cardioActivity')?.value || '',
+      duration: document.getElementById('cardioDuration')?.value || '',
+      distance: document.getElementById('cardioDistance')?.value || '',
+      hr: document.getElementById('cardioHR')?.value || ''
+    }
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function restoreDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) return;
+  const draft = JSON.parse(raw);
+  if (!draft) return;
+
+  const hasContent = draft.exercises?.length > 0 ||
+    draft.cardio?.activity || draft.cardio?.duration || draft.cardio?.distance;
+  if (!hasContent) return;
+
+  workoutDate = draft.date || workoutDate;
+  exercises = draft.exercises || [];
+  selectType(draft.type || 'gym', document.getElementById('tbtn-' + (draft.type || 'gym')));
+  if (draft.cardio) {
+    document.getElementById('cardioActivity').value = draft.cardio.activity || '';
+    document.getElementById('cardioDuration').value = draft.cardio.duration || '';
+    document.getElementById('cardioDistance').value = draft.cardio.distance || '';
+    document.getElementById('cardioHR').value = draft.cardio.hr || '';
+  }
+  setTodayLabel();
+  renderExerciseList();
+  showToast(lang === 'ru' ? '📋 Черновик восстановлен' : '📋 Draft restored');
+}
+
+function clearDraft() { localStorage.removeItem(DRAFT_KEY); }
+
 function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -499,6 +542,7 @@ function selectType(type, btn) {
   btn.classList.add('selected');
   document.getElementById('gymSection').style.display = (type !== 'cardio') ? 'block' : 'none';
   document.getElementById('cardioSection').classList.toggle('visible', type !== 'gym');
+  saveDraft();
 }
 
 /* ── Per-set inputs ── */
@@ -591,6 +635,7 @@ function addExercise() {
   const exNotes = document.getElementById('exNotes').value.trim();
   exercises.push({ name, sets, notes: exNotes });
   renderExerciseList();
+  saveDraft();
 
   // Reset form
   document.getElementById('exName').value = '';
@@ -602,7 +647,7 @@ function addExercise() {
   renderSetInputs();
 }
 
-function removeExercise(i) { exercises.splice(i, 1); renderExerciseList(); }
+function removeExercise(i) { exercises.splice(i, 1); renderExerciseList(); saveDraft(); }
 
 function renderExerciseList() {
   document.getElementById('exerciseList').innerHTML = exercises.map((ex, i) => {
@@ -699,6 +744,7 @@ function editWorkout(id) {
 
 function cancelEdit() {
   editingId = null;
+  clearDraft();
   workoutDate = new Date().toISOString().split('T')[0];
   setTodayLabel();
   exercises = [];
@@ -743,7 +789,7 @@ function saveWorkout() {
     showToast(t('toast_saved'));
   }
 
-  save(); exercises = []; renderExerciseList();
+  save(); clearDraft(); exercises = []; renderExerciseList();
   ['workoutNotes','exName','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('exSetsCount').value = 3;
   renderSetInputs();
@@ -1127,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLang();
   renderSetInputs();
   updateStreak();
+  restoreDraft();
 });
 
 (function initAC() {
