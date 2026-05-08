@@ -264,6 +264,7 @@
   </div>
   <div class="progress-section">
     <div class="progress-title" id="pbTitle"></div>
+    <div id="pbFilters"></div>
     <ul class="pb-list" id="pbList"></ul>
   </div>
 </div>
@@ -871,11 +872,24 @@ function renderProgress() {
     const kg = getMaxKg(ex);
     if(kg>0 && (!pbs[ex.name]||kg>pbs[ex.name])) pbs[ex.name]=kg;
   }));
-  const pbEntries=Object.entries(pbs).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('pbList').innerHTML=pbEntries.length?pbEntries.map(([n,w])=>`<li class="pb-item"><span>${n}</span><span class="pb-value">${w} kg</span></li>`).join(''):`<div style="color:var(--muted);font-size:14px;padding:12px 0">${t('no_pb')}</div>`;
+
+  // PB filter buttons
+  const pbGroups = ['all', ...MUSCLE_GROUPS.filter(g => Object.keys(pbs).some(n => getMuscleGroup(n) === g))];
+  document.getElementById('pbFilters').innerHTML = `<div class="muscle-filters" style="margin-bottom:12px">` +
+    pbGroups.map(g => `<button class="mf-btn ${pbFilter===g?'active':''}" onclick="setPbFilter('${g}')">${g==='all'?t('explore_filter_all'):g}</button>`).join('') +
+    `</div>`;
+
+  const pbEntries = Object.entries(pbs)
+    .filter(([n]) => pbFilter === 'all' || getMuscleGroup(n) === pbFilter)
+    .sort((a,b) => b[1]-a[1]);
+
+  document.getElementById('pbList').innerHTML = pbEntries.length
+    ? pbEntries.map(([n,w]) => `<li class="pb-item"><span>${muscleTag(n)}${n}</span><span class="pb-value">${w} kg</span></li>`).join('')
+    : `<li style="color:var(--muted);font-size:14px;padding:12px 0">${t('no_pb')}</li>`;
 }
 
 /* ── Explore screen ── */
+let pbFilter = 'all';
 let exploreFilter = 'all';
 let exploreQuery = '';
 
@@ -904,6 +918,8 @@ function renderExplore() {
 
   renderExploreList();
 }
+
+function setPbFilter(g) { pbFilter = g; renderProgress(); }
 
 function setExploreFilter(g) {
   exploreFilter = g;
