@@ -57,13 +57,13 @@
 
   /* Per-set grid */
   .sets-detail { margin-bottom: 12px; }
-  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr auto; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
   .set-header-row span { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); text-align: center; }
   .set-header-row span:first-child { text-align: left; }
   .set-unit-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
   .set-unit-btn { padding: 0 7px; height: 100%; font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif; background: none; border: none; color: var(--muted); cursor: pointer; transition: all 0.15s; line-height: 44px; }
   .set-unit-btn.active { background: var(--accent); color: #fff; }
-  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px; gap: 6px; align-items: center; margin-bottom: 6px; }
   .set-num { font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; padding-top: 2px; }
   .set-row input { margin-bottom: 0; padding: 10px 8px; text-align: center; font-size: 15px; }
 
@@ -217,7 +217,7 @@
           <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" />
           <button class="step-btn" onclick="changeSets(1)">+</button>
         </div>
-        <div class="set-unit-toggle" style="margin-left:auto;height:44px">
+        <div class="set-unit-toggle" style="margin-left:auto;height:44px;width:68px">
           <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)" style="line-height:44px;padding:0 10px">12</button>
           <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)" style="line-height:44px;padding:0 10px">15</button>
         </div>
