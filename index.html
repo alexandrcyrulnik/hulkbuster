@@ -213,11 +213,7 @@
 
       <div class="sets-count-row">
         <label id="lbl-sets"></label>
-        <div class="sets-stepper">
-          <button class="step-btn" onclick="changeSets(-1)">−</button>
-          <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" />
-          <button class="step-btn" onclick="changeSets(1)">+</button>
-        </div>
+        <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" style="width:70px;text-align:center;font-size:18px;font-weight:600;padding:8px 10px;margin-bottom:0" />
         <div style="display:flex;gap:6px;margin-left:auto">
           <div class="set-unit-toggle" style="height:36px;width:68px">
             <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)" style="line-height:36px;padding:0 10px">12</button>
