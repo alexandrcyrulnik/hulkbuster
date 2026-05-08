@@ -239,7 +239,7 @@
     <label id="lbl-activity"></label>
     <input type="text" id="cardioActivity" />
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div><label id="lbl-duration"></label><input type="number" id="cardioDuration" placeholder="30" /></div>
+      <div><label id="lbl-duration"></label><input type="text" id="cardioDuration" placeholder="0:30:00" inputmode="numeric" maxlength="8" oninput="formatDurationInput(this)" /></div>
       <div><label id="lbl-distance"></label><input type="number" id="cardioDistance" placeholder="5" step="0.1" /></div>
     </div>
     <label id="lbl-hr"></label>
@@ -454,6 +454,24 @@ function setLang(l) {
   if (activeTab === 'history') renderHistory();
   if (activeTab === 'progress') renderProgress();
   if (activeTab === 'explore') renderExplore();
+}
+
+function formatDurationInput(inp) {
+  // keep only digits and colons, max 8 chars
+  let val = inp.value.replace(/[^\d:]/g, '');
+  // auto-insert colons from digits only
+  const digits = val.replace(/:/g, '');
+  if (digits.length <= 2) {
+    val = digits;
+  } else if (digits.length <= 4) {
+    val = digits.slice(0, digits.length - 2) + ':' + digits.slice(-2);
+  } else {
+    const h = digits.slice(0, digits.length - 4);
+    const m = digits.slice(-4, -2);
+    const s = digits.slice(-2);
+    val = h + ':' + m + ':' + s;
+  }
+  inp.value = val;
 }
 
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts)); }
