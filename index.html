@@ -528,7 +528,7 @@ function renderSetInputs() {
           <button class="set-unit-btn ${prevUnit==='lbs'?'active':''}" data-unit="lbs" onclick="toggleUnit(this,'lbs')">lbs</button>
         </div>
       </div>
-      <div style="display:flex;gap:6px;padding-left:28px">
+      <div style="display:flex;gap:6px;justify-content:flex-end">
         <button class="set-effort-btn${prevEffort==='failed'?' sel':''}" data-effort="failed" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='failed'?'1':'0.25'};padding:0;line-height:1">😵</button>
         <button class="set-effort-btn${prevEffort==='hard'?' sel':''}" data-effort="hard" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='hard'?'1':'0.25'};padding:0;line-height:1">🔥</button>
         <button class="set-effort-btn${prevEffort==='easy'?' sel':''}" data-effort="easy" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='easy'?'1':'0.25'};padding:0;line-height:1">💪</button>
