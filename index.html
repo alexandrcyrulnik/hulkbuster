@@ -699,6 +699,17 @@ function setDefaultReps(val) {
 }
 
 let editingId = null;
+let _histExMap = {};
+
+function addExToWorkout(key) {
+  const ex = _histExMap[key];
+  if (!ex) return;
+  exercises.push(JSON.parse(JSON.stringify(ex)));
+  renderExerciseList();
+  saveDraft();
+  switchTab('log', document.getElementById('tab-log'));
+  showToast(lang === 'ru' ? '➕ Добавлено в тренировку' : '➕ Added to workout');
+}
 
 function editWorkout(id) {
   const w = workouts.find(w => w.id === id);
@@ -819,11 +830,16 @@ function renderHistory() {
   if (!workouts.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏋️</div><div>${t('empty_history')}</div></div>`; return; }
   const byDate = {};
   workouts.forEach(w => { if (!byDate[w.date]) byDate[w.date]=[]; byDate[w.date].push(w); });
+  _histExMap = {};
   el.innerHTML = Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).map(date => {
     const d = new Date(date+'T12:00:00');
     const label = d.toLocaleDateString(t('locale'), {weekday:'short', month:'short', day:'numeric'});
     const cards = byDate[date].map(w => {
-      let exLines = (w.exercises||[]).map(e => formatExerciseForHistory(e)).join('<br>');
+      let exLines = (w.exercises||[]).map((e, ei) => {
+        const key = `${w.id}_${ei}`;
+        _histExMap[key] = e;
+        return `<span style="display:inline-flex;align-items:baseline;gap:4px;flex-wrap:wrap">${formatExerciseForHistory(e)}<button onclick="addExToWorkout('${key}')" style="background:none;border:none;cursor:pointer;font-size:13px;opacity:0.5;padding:0;line-height:1;flex-shrink:0" title="Добавить в тренировку">➕</button></span>`;
+      }).join('<br>');
       if (w.cardio) { const c=w.cardio; exLines+=(exLines?'<br>':'')+'🏃 '+[c.activity,c.duration?c.duration+'min':'',c.distance?c.distance+'km':'',c.hr?c.hr+' bpm':''].filter(Boolean).join(' · '); }
       if (w.notes) exLines+=`<br><em style="color:#888">💬 ${w.notes}</em>`;
       return `<div class="history-workout"><div class="hw-header"><span class="hw-type ${w.type}">${getTypeBadge(w.type)}</span><div><button class="edit-workout" onclick="editWorkout(${w.id})">✏️ ${t('edit_btn')}</button><button class="delete-workout" onclick="deleteWorkout(${w.id})">${t('delete_btn')}</button></div></div><div class="hw-exercises">${exLines||t('no_details')}</div></div>`;
