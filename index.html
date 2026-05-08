@@ -57,15 +57,16 @@
 
   /* Per-set grid */
   .sets-detail { margin-bottom: 12px; }
-  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+  .set-header-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px auto; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
   .set-header-row span { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); text-align: center; }
   .set-header-row span:first-child { text-align: left; }
   .set-unit-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
   .set-unit-btn { flex: 1; text-align: center; padding: 0; height: 100%; font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif; background: none; border: none; color: var(--muted); cursor: pointer; transition: all 0.15s; line-height: 44px; }
   .set-unit-btn.active { background: var(--accent); color: #fff; }
-  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .set-row { display: grid; grid-template-columns: 28px 1fr 1fr 68px auto; gap: 6px; align-items: center; margin-bottom: 6px; }
   .set-num { font-size: 11px; color: var(--muted); font-weight: 600; text-align: center; padding-top: 2px; }
   .set-row input { margin-bottom: 0; padding: 10px 8px; text-align: center; font-size: 15px; }
+  .set-effort-group { display: flex; gap: 2px; align-items: center; }
 
   /* Saved exercise cards */
   .exercise-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
@@ -210,16 +211,18 @@
         </div>
       </div>
 
-      <div class="sets-count-row">
+      <div class="sets-count-row" style="justify-content:center">
         <label id="lbl-sets"></label>
         <div class="sets-stepper">
           <button class="step-btn" onclick="changeSets(-1)">−</button>
           <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" />
           <button class="step-btn" onclick="changeSets(1)">+</button>
         </div>
-        <div class="set-unit-toggle" style="margin-left:auto;height:44px;width:68px">
-          <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)" style="line-height:44px;padding:0 10px">12</button>
-          <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)" style="line-height:44px;padding:0 10px">15</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <div class="set-unit-toggle" style="height:36px;width:68px">
+          <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)" style="line-height:36px;padding:0 10px">12</button>
+          <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)" style="line-height:36px;padding:0 10px">15</button>
         </div>
       </div>
 
@@ -575,6 +578,7 @@ function renderSetInputs() {
     <span>${t('lbl_reps')}</span>
     <span>${t('lbl_kg')}</span>
     <span></span>
+    <span></span>
   </div>`;
 
   for (let i = 0; i < count; i++) {
@@ -582,8 +586,8 @@ function renderSetInputs() {
     const prevKg     = existing[i]?.kg   || (i > 0 ? existing[i-1]?.kg || '' : '');
     const prevUnit   = existing[i]?.unit   || 'kg';
     const prevEffort = existing[i]?.effort || null;
-    html += `<div class="set-wrap" style="margin-bottom:8px">
-      <div class="set-row" style="margin-bottom:4px">
+    html += `<div class="set-wrap">
+      <div class="set-row">
         <div class="set-num">${i + 1}</div>
         <input class="inp-reps" type="number" min="1" placeholder="${defaultReps}" value="${prevReps || defaultReps}" inputmode="numeric" />
         <input class="inp-kg" type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" placeholder="${prevUnit === 'lbs' ? '135' : '60'}" value="${prevKg}" />
@@ -591,11 +595,11 @@ function renderSetInputs() {
           <button class="set-unit-btn ${prevUnit==='kg'?'active':''}" data-unit="kg" onclick="toggleUnit(this,'kg')">kg</button>
           <button class="set-unit-btn ${prevUnit==='lbs'?'active':''}" data-unit="lbs" onclick="toggleUnit(this,'lbs')">lbs</button>
         </div>
-      </div>
-      <div style="display:flex;gap:6px;justify-content:flex-end">
-        <button class="set-effort-btn${prevEffort==='failed'?' sel':''}" data-effort="failed" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='failed'?'1':'0.25'};padding:0;line-height:1">😵</button>
-        <button class="set-effort-btn${prevEffort==='hard'?' sel':''}" data-effort="hard" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='hard'?'1':'0.25'};padding:0;line-height:1">🔥</button>
-        <button class="set-effort-btn${prevEffort==='easy'?' sel':''}" data-effort="easy" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='easy'?'1':'0.25'};padding:0;line-height:1">💪</button>
+        <div class="set-effort-group">
+          <button class="set-effort-btn${prevEffort==='failed'?' sel':''}" data-effort="failed" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='failed'?'1':'0.25'};padding:0;line-height:1">😵</button>
+          <button class="set-effort-btn${prevEffort==='hard'?' sel':''}" data-effort="hard" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='hard'?'1':'0.25'};padding:0;line-height:1">🔥</button>
+          <button class="set-effort-btn${prevEffort==='easy'?' sel':''}" data-effort="easy" onclick="toggleSetEffort(this)" style="background:none;border:none;font-size:18px;cursor:pointer;opacity:${prevEffort==='easy'?'1':'0.25'};padding:0;line-height:1">💪</button>
+        </div>
       </div>
     </div>`;
   }
