@@ -241,8 +241,6 @@
     <input type="number" id="cardioHR" placeholder="145" />
   </div>
 
-  <label id="lbl-notes"></label>
-  <textarea id="workoutNotes"></textarea>
   <button class="btn btn-save" id="saveBtn" onclick="saveWorkout()"></button>
   <button class="btn btn-cancel" id="cancelEditBtn" style="display:none" onclick="cancelEdit()"></button>
 </div>
@@ -392,8 +390,6 @@ function applyLang() {
   document.getElementById('lbl-duration').textContent = t('duration');
   document.getElementById('lbl-distance').textContent = t('distance');
   document.getElementById('lbl-hr').textContent = t('hr');
-  document.getElementById('lbl-notes').textContent = t('notes');
-  document.getElementById('workoutNotes').placeholder = t('notes_ph');
   document.getElementById('saveBtn').textContent = t('save_btn');
   const streakLabel = document.getElementById('streakLabel');
   if (streakLabel) streakLabel.textContent = t('streak_label');
@@ -644,7 +640,7 @@ function cancelEdit() {
   setTodayLabel();
   exercises = [];
   renderExerciseList();
-  ['workoutNotes','exName','exNotes','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
+  ['exName','exNotes','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('exSetsCount').value = 3;
   renderSetInputs();
   selectType('gym', document.getElementById('tbtn-gym'));
@@ -663,7 +659,7 @@ function saveWorkout() {
     }
   }
   if (exercises.length === 0 && !cardioData) { showToast(t('toast_no_ex')); return; }
-  const notes = document.getElementById('workoutNotes').value.trim();
+  const notes = '';
 
   if (editingId !== null) {
     // Update existing workout
