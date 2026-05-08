@@ -221,6 +221,11 @@
 
       <div class="sets-detail" id="setInputsContainer"></div>
 
+      <div>
+        <label id="lbl-exnotes"></label>
+        <input type="text" id="exNotes" />
+      </div>
+
       <button class="btn btn-ghost" id="addExBtn" onclick="addExercise()"></button>
     </div>
   </div>
@@ -288,6 +293,7 @@ const i18n = {
     exname: 'Exercise name', exname_ph: 'e.g. Bench Press',
     sets: 'Sets',
     lbl_set: 'Set', lbl_reps: 'Reps', lbl_kg: 'kg',
+    ex_notes: 'Exercise note (optional)', ex_notes_ph: 'e.g. felt heavy, good form',
     activity: 'Activity', activity_ph: 'e.g. Running, Cycling',
     duration: 'Duration (min)', distance: 'Distance (km)',
     hr: 'Avg HR (bpm) — optional',
@@ -327,6 +333,7 @@ const i18n = {
     exname: 'Название упражнения', exname_ph: 'напр. Жим лёжа',
     sets: 'Подходы',
     lbl_set: 'Подход', lbl_reps: 'Повт.', lbl_kg: 'кг',
+    ex_notes: 'Заметка к упражнению (необязательно)', ex_notes_ph: 'напр. тяжело шло, хорошая техника',
     activity: 'Активность', activity_ph: 'напр. Бег, Велосипед',
     duration: 'Время (мин)', distance: 'Дистанция (км)',
     hr: 'Пульс (уд/мин) — необязательно',
@@ -377,6 +384,8 @@ function applyLang() {
   document.getElementById('lbl-exname').textContent = t('exname');
   document.getElementById('exName').placeholder = t('exname_ph');
   document.getElementById('lbl-sets').textContent = t('sets');
+  document.getElementById('lbl-exnotes').textContent = t('ex_notes');
+  document.getElementById('exNotes').placeholder = t('ex_notes_ph');
   document.getElementById('addExBtn').textContent = t('add_ex');
   document.getElementById('lbl-activity').textContent = t('activity');
   document.getElementById('cardioActivity').placeholder = t('activity_ph');
@@ -544,11 +553,13 @@ function addExercise() {
     };
   });
 
-  exercises.push({ name, sets });
+  const exNotes = document.getElementById('exNotes').value.trim();
+  exercises.push({ name, sets, notes: exNotes });
   renderExerciseList();
 
   // Reset form
   document.getElementById('exName').value = '';
+  document.getElementById('exNotes').value = '';
   document.getElementById('exSetsCount').value = 3;
   renderSetInputs();
 }
@@ -576,6 +587,7 @@ function renderExerciseList() {
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
+      ${ex.notes ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">💬 ${ex.notes}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -632,7 +644,7 @@ function cancelEdit() {
   setTodayLabel();
   exercises = [];
   renderExerciseList();
-  ['workoutNotes','exName','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
+  ['workoutNotes','exName','exNotes','cardioActivity','cardioDuration','cardioDistance','cardioHR'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('exSetsCount').value = 3;
   renderSetInputs();
   selectType('gym', document.getElementById('tbtn-gym'));
@@ -688,7 +700,8 @@ function formatExerciseForHistory(ex) {
   // ex.sets is array [{reps, kg}] (new format) or old format with scalar sets/reps/weight
   if (ex.sets && Array.isArray(ex.sets)) {
     const setsStr = ex.sets.map((s, i) => `${i+1}: ${s.reps}×${s.kg}kg`).join('  ');
-    return `${muscleTag(ex.name)}${ex.name} — ${setsStr}`;
+    const noteLine = ex.notes ? `<br><span style="font-size:11px;color:var(--muted);padding-left:4px">💬 ${ex.notes}</span>` : '';
+    return `${muscleTag(ex.name)}${ex.name} — ${setsStr}${noteLine}`;
   }
   // legacy
   return `${muscleTag(ex.name)}${ex.name}: ${ex.sets}×${ex.reps} @ ${ex.weight}kg`;
