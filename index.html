@@ -838,7 +838,7 @@ function renderHistory() {
       let exLines = (w.exercises||[]).map((e, ei) => {
         const key = `${w.id}_${ei}`;
         _histExMap[key] = e;
-        return `${formatExerciseForHistory(e)}&nbsp;<button onclick="addExToWorkout('${key}')" style="background:#fff;color:var(--accent);border:1.5px solid var(--accent);border-radius:20px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;padding:3px 10px;cursor:pointer;vertical-align:middle;white-space:nowrap">${lang==='ru'?'Добавить':'Add'}</button>`;
+        return `${formatExerciseForHistory(e)}&nbsp;<button onclick="addExToWorkout('${key}')" style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);border-radius:20px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;padding:5px 12px;cursor:pointer;vertical-align:middle;white-space:nowrap">${lang==='ru'?'Добавить':'Add'}</button>`;
       }).join('<br>');
       if (w.cardio) { const c=w.cardio; exLines+=(exLines?'<br>':'')+'🏃 '+[c.activity,c.duration?c.duration+'min':'',c.distance?c.distance+'km':'',c.hr?c.hr+' bpm':''].filter(Boolean).join(' · '); }
       if (w.notes) exLines+=`<br><em style="color:#888">💬 ${w.notes}</em>`;
