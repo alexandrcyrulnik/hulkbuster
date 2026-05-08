@@ -125,8 +125,7 @@
   .pb-value { font-weight: 600; color: var(--accent); }
   .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
   .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; opacity: 0; transition: all 0.3s; z-index: 200; white-space: nowrap; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .header-status { flex: 1; text-align: center; font-size: 12px; color: var(--muted); opacity: 0; transition: opacity 0.4s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Explore screen */
   .explore-search { margin-bottom: 14px; }
   .explore-search input { margin-bottom: 0; }
@@ -167,6 +166,7 @@
 
 <header>
   <div class="logo">HULKBUSTER</div>
+  <span class="header-status" id="header-status"></span>
   <div class="header-right">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="barcode-btn" onclick="document.getElementById('barcodeModal').classList.add('open')" title="Карта зала">🎫</button>
@@ -274,7 +274,6 @@
   <div id="exploreContent"></div>
 </div>
 
-<div class="toast" id="toast"></div>
 
 <div class="barcode-modal" id="barcodeModal" onclick="this.classList.remove('open')">
   <button class="barcode-modal-close" onclick="document.getElementById('barcodeModal').classList.remove('open')">✕</button>
@@ -520,11 +519,13 @@ function restoreDraft() {
 
 function clearDraft() { localStorage.removeItem(DRAFT_KEY); }
 
+let _statusTimer = null;
 function showToast(msg) {
-  const el = document.getElementById('toast');
+  const el = document.getElementById('header-status');
   el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
+  el.style.opacity = '1';
+  if (_statusTimer) clearTimeout(_statusTimer);
+  _statusTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
 }
 
 function switchTab(tab, btn) {
