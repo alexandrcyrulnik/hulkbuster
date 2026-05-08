@@ -217,9 +217,9 @@
           <input type="number" id="exSetsCount" value="3" min="1" max="10" oninput="renderSetInputs()" />
           <button class="step-btn" onclick="changeSets(1)">+</button>
         </div>
-        <div class="set-unit-toggle" style="margin-left:8px">
-          <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)">12</button>
-          <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)">15</button>
+        <div class="set-unit-toggle" style="margin-left:8px;height:44px">
+          <button class="set-unit-btn active" id="reps-toggle-12" onclick="setDefaultReps(12)" style="line-height:44px">12</button>
+          <button class="set-unit-btn" id="reps-toggle-15" onclick="setDefaultReps(15)" style="line-height:44px">15</button>
         </div>
       </div>
 
@@ -690,9 +690,9 @@ function setDefaultReps(val) {
   defaultReps = val;
   document.getElementById('reps-toggle-12').classList.toggle('active', val === 12);
   document.getElementById('reps-toggle-15').classList.toggle('active', val === 15);
-  // update any empty rep inputs
   document.querySelectorAll('#setInputsContainer .inp-reps').forEach(inp => {
-    if (!inp.value) inp.placeholder = val;
+    inp.value = val;
+    inp.placeholder = val;
   });
 }
 
