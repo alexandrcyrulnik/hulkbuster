@@ -707,11 +707,31 @@ let _histExMap = {};
 function addExToWorkout(key) {
   const ex = _histExMap[key];
   if (!ex) return;
-  exercises.push(JSON.parse(JSON.stringify(ex)));
-  renderExerciseList();
-  saveDraft();
+
   switchTab('log', document.getElementById('tab-log'));
-  showToast(lang === 'ru' ? '➕ Добавлено в тренировку' : '➕ Added to workout');
+
+  // Fill form with exercise data
+  document.getElementById('exName').value = ex.name;
+  document.getElementById('exNotes').value = ex.notes || '';
+  document.getElementById('exSetsCount').value = ex.sets.length || 3;
+  document.getElementById('setInputsContainer').innerHTML = '';
+  renderSetInputs();
+
+  // Fill individual set values
+  const setWraps = document.querySelectorAll('#setInputsContainer .set-wrap');
+  (ex.sets || []).forEach((s, i) => {
+    if (!setWraps[i]) return;
+    setWraps[i].querySelector('.inp-reps').value = s.reps || defaultReps;
+    setWraps[i].querySelector('.inp-kg').value = s.kg || '';
+    if (s.effort) {
+      const btn = setWraps[i].querySelector(`.set-effort-btn[data-effort="${s.effort}"]`);
+      if (btn) toggleSetEffort(btn);
+    }
+  });
+
+  // Scroll to the form
+  document.querySelector('.add-exercise-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showToast(lang === 'ru' ? '📋 Заполнено из истории' : '📋 Filled from history');
 }
 
 function editWorkout(id) {
