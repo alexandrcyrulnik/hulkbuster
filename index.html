@@ -288,6 +288,28 @@
 const STORAGE_KEY = 'gainlog_v2';
 const DRAFT_KEY = 'gainlog_draft';
 let workouts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+// Merge exercises that were combined into one (old name -> surviving name),
+// so past history entries show up under the exercise that replaced them.
+(function mergeRenamedExercises() {
+  const EXERCISE_MERGE_MAP = {
+    'Тяга к лицу в кроссовере': 'Тяга в кроссовере к подбородку',
+    'Cable Face Pull': 'Cable Upright Row',
+    'Тяга к лицу с верхнего блока': 'Горизонтальная протяжка в кроссовере',
+    'High Cable Face Pull': 'Cable Horizontal Row'
+  };
+  let changed = false;
+  workouts.forEach(w => {
+    (w.exercises || []).forEach(ex => {
+      if (EXERCISE_MERGE_MAP[ex.name]) {
+        ex.name = EXERCISE_MERGE_MAP[ex.name];
+        changed = true;
+      }
+    });
+  });
+  if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+})();
+
 let currentType = 'gym';
 let exercises = [];
 let lang = localStorage.getItem('gainlog_lang') || 'en';
@@ -1071,8 +1093,6 @@ const EXERCISES = [
   { ru: 'Гакк-приседания', en: 'Hack Squat', g: 'Ноги' },
   { ru: 'Ягодичный мост', en: 'Hip Thrust', g: 'Ноги' },
   { ru: 'Зашагивания на скамью', en: 'Step-ups', g: 'Ноги' },
-  { ru: 'Тяга к лицу в кроссовере', en: 'Cable Face Pull', g: 'Плечи' },
-  { ru: 'Тяга к лицу с верхнего блока', en: 'High Cable Face Pull', g: 'Плечи' },
   { ru: 'Жим в тренажёре нейтральным хватом', en: 'Seated Machine Press Neutral Grip', g: 'Плечи' },
   { ru: 'Жим в Смите стоя', en: 'Smith Machine Overhead Press', g: 'Плечи' },
   { ru: 'Жим стоя в кроссовере', en: 'Cable Standing Press', g: 'Плечи' },
