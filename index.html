@@ -162,6 +162,9 @@
   .barcode-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); }
   .barcode-modal img { width: 90%; max-width: 420px; image-rendering: crisp-edges; }
   .barcode-modal-label { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--muted); margin-top: 24px; }
+  .barcode-card-tabs { display: none; gap: 8px; margin-bottom: 28px; }
+  .barcode-card-tab { padding: 6px 18px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .barcode-card-tab.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -171,7 +174,7 @@
   <span class="header-status" id="header-status"></span>
   <div class="header-right">
     <div style="display:flex;align-items:center;gap:8px">
-      <button class="barcode-btn" onclick="document.getElementById('barcodeModal').classList.add('open')" title="Карта зала">🎫</button>
+      <button class="barcode-btn" onclick="openBarcodeModal()" title="Карта зала">🎫</button>
       <div class="lang-toggle">
         <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
         <button class="lang-btn" id="btn-ru" onclick="setLang('ru')">RU</button>
@@ -281,7 +284,9 @@
 
 <div class="barcode-modal" id="barcodeModal" onclick="this.classList.remove('open')">
   <button class="barcode-modal-close" onclick="document.getElementById('barcodeModal').classList.remove('open')">✕</button>
-  <img src="barcode.jpg" alt="barcode" />
+  <div class="barcode-card-tabs" id="barcodeCardTabs"></div>
+  <img id="barcodeImg" src="" alt="barcode" />
+  <div class="barcode-modal-label" id="barcodeLabel"></div>
 </div>
 
 <script>
@@ -471,6 +476,40 @@ function onDatePicked(val) {
 function cancelDateEdit() {
   document.getElementById('workoutDatePicker').style.display = 'none';
   document.getElementById('dateCancelBtn').style.display = 'none';
+}
+
+// Карты зала: у каждого владельца своя карта (штрихкод) и имя.
+// Чтобы добавить ещё одну карту — положи её фото в репозиторий и добавь строку сюда, например:
+// { name: 'Кристина', img: 'barcode-kristina.jpg' }
+const GYM_CARDS = [
+  { name: 'Саша', img: 'barcode.jpg' }
+];
+let activeCardIndex = 0;
+
+function openBarcodeModal() {
+  renderBarcodeCard();
+  document.getElementById('barcodeModal').classList.add('open');
+}
+
+function renderBarcodeCard() {
+  const tabsEl = document.getElementById('barcodeCardTabs');
+  if (GYM_CARDS.length > 1) {
+    tabsEl.style.display = 'flex';
+    tabsEl.innerHTML = GYM_CARDS.map((c, i) =>
+      `<button class="barcode-card-tab ${i === activeCardIndex ? 'active' : ''}" onclick="event.stopPropagation(); selectBarcodeCard(${i})">${c.name}</button>`
+    ).join('');
+  } else {
+    tabsEl.style.display = 'none';
+    tabsEl.innerHTML = '';
+  }
+  const card = GYM_CARDS[activeCardIndex] || GYM_CARDS[0];
+  document.getElementById('barcodeImg').src = card.img;
+  document.getElementById('barcodeLabel').textContent = card.name;
+}
+
+function selectBarcodeCard(i) {
+  activeCardIndex = i;
+  renderBarcodeCard();
 }
 
 function setLang(l) {
