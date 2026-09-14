@@ -481,16 +481,20 @@ function cancelDateEdit() {
 // Карты зала: у каждого владельца своя карта (штрихкод) и имя.
 // Чтобы добавить ещё одну карту — положи её фото в репозиторий и добавь строку сюда, например:
 // { name: 'Кристина', img: 'barcode-kristina.jpg' }
+// default: true ставится только у одной карты — это та, что показывается
+// по умолчанию, пока человек ни разу не выбрал свою на этом устройстве.
 const GYM_CARDS = [
-  { name: 'Саша', img: 'barcode.jpg' },
+  { name: 'Саша', img: 'barcode.jpg', default: true },
   { name: 'Кристина', img: 'barcode-kristina.jpg' }
 ];
 const CARD_STORAGE_KEY = 'gainlog_card';
 // Запоминаем выбранную карту на этом устройстве, чтобы при следующем
-// открытии сразу показывалась она, а не первая в списке.
+// открытии сразу показывалась она. Пока никто ничего не выбрал —
+// показываем карту, помеченную default: true (сейчас это Саша).
 let activeCardIndex = (() => {
   const saved = localStorage.getItem(CARD_STORAGE_KEY);
-  const idx = GYM_CARDS.findIndex(c => c.name === saved);
+  let idx = GYM_CARDS.findIndex(c => c.name === saved);
+  if (idx < 0) idx = GYM_CARDS.findIndex(c => c.default);
   return idx >= 0 ? idx : 0;
 })();
 
