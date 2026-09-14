@@ -485,7 +485,14 @@ const GYM_CARDS = [
   { name: 'Саша', img: 'barcode.jpg' },
   { name: 'Кристина', img: 'barcode-kristina.jpg' }
 ];
-let activeCardIndex = 0;
+const CARD_STORAGE_KEY = 'gainlog_card';
+// Запоминаем выбранную карту на этом устройстве, чтобы при следующем
+// открытии сразу показывалась она, а не первая в списке.
+let activeCardIndex = (() => {
+  const saved = localStorage.getItem(CARD_STORAGE_KEY);
+  const idx = GYM_CARDS.findIndex(c => c.name === saved);
+  return idx >= 0 ? idx : 0;
+})();
 
 function openBarcodeModal() {
   renderBarcodeCard();
@@ -510,6 +517,7 @@ function renderBarcodeCard() {
 
 function selectBarcodeCard(i) {
   activeCardIndex = i;
+  localStorage.setItem(CARD_STORAGE_KEY, GYM_CARDS[i].name);
   renderBarcodeCard();
 }
 
